@@ -19,6 +19,13 @@ def engine():
     patcher.stop()
 
 
+@pytest.fixture(scope='session')
+def no_rpc():
+    patcher = patch('glint.use_rpc', side_effect=lambda x: x)
+    yield patcher.start()
+    patcher.stop()
+
+
 @pytest.fixture
 def test_glint_dir(request):
     test_dir = getattr(request.module, 'glint_root', None)
@@ -48,3 +55,33 @@ class Bunch:
 @pytest.fixture
 def bunch():
     return Bunch
+
+
+class _xdict(dict):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._not_given = {}
+
+    def __repr__(self):
+        items = []
+        for k, v in self.items():
+            items.append(f'{k!r}: {v!r}')
+        for k, v in self._not_given.items():
+            items.append(f'{k!r}: {v!r}')
+        return '{' + ', '.join(items) + '}'
+
+    def __eq__(self, obj):
+        is_equal = True
+        for k, v in obj.items():
+            try:
+                if self[k] != v:
+                    is_equal = False
+            except KeyError:
+                self._not_given[k] = v
+
+        return is_equal
+
+
+@pytest.fixture
+def xdict():
+    return _xdict()
