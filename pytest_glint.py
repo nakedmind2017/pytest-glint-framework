@@ -19,9 +19,13 @@ def engine():
     patcher.stop()
 
 
+def use_rpc_stub(decorated=None, **kwargs):
+    return (decorated if decorated else lambda x: x)
+
+
 @pytest.fixture(scope='session')
 def no_rpc():
-    patcher = patch('glint.use_rpc', side_effect=lambda x: x)
+    patcher = patch('glint.use_rpc', side_effect=use_rpc_stub)
     yield patcher.start()
     patcher.stop()
 
