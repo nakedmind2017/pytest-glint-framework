@@ -61,6 +61,22 @@ def bunch():
     return Bunch
 
 
+class InstanceMatcher:
+    def __init__(self, klass_or_type):
+        self.klass_or_type = klass_or_type
+
+    def __repr__(self):
+        return repr(self.klass_or_type)
+
+    def __eq__(self, obj):
+        return isinstance(obj, self.klass_or_type)
+
+
+@pytest.fixture(scope='session')
+def instance_matcher():
+    return InstanceMatcher
+
+
 class _xdict(dict):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
