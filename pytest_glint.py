@@ -31,6 +31,13 @@ def no_rpc():
 
 
 @pytest.fixture
+def get_cache_data():
+    patcher = patch('glint.get_cache_data', return_value={})
+    yield patcher.start()
+    patcher.stop()
+
+
+@pytest.fixture
 def test_glint_dir(request):
     test_dir = getattr(request.module, 'glint_root', None)
     if test_dir:
