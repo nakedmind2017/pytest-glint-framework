@@ -142,4 +142,4 @@ class _xdict(dict):
 
 @pytest.fixture
 def xdict():
-    return _xdict()
+    return _xdict
