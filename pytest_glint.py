@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
 import shutil
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+import glint
 
 
 @pytest.fixture
 def path_exists():
     patcher = patch.object(Path, 'exists', return_value=False)
+    yield patcher.start()
+    patcher.stop()
+
+
+@pytest.fixture
+def path_mkdir():
+    patcher = patch.object(Path, 'mkdir')
     yield patcher.start()
     patcher.stop()
 
@@ -59,6 +68,46 @@ def no_rpc():
     patcher = patch('glint.use_rpc', side_effect=use_rpc_stub)
     yield patcher.start()
     patcher.stop()
+
+
+class _patch_gcmd():
+    def __init__(self, command_name, new=None, **kwargs):
+        self.command_name = command_name
+        self.new = new
+        self.kwargs = kwargs
+        self._old_handler = None
+        self._patcher = None
+
+    def __enter__(self):
+        """Perform the patch."""
+        try:
+            self._old_handler = glint.api.commands.get_command_handler(self.command_name)
+        except glint.GlintError:
+            pass
+
+        if not self.new:
+            self.new = MagicMock(**self.kwargs)
+
+        glint.register_command(self.command_name, self.new, force=True)
+        return self.new
+
+    def __exit__(self, *exc_info):
+        """Undo the patch."""
+        if self._old_handler:
+            glint.register_command(self.command_name, self._old_handler, force=True)
+
+    def start(self):
+        """Activate a patch, returning any created mock."""
+        return self.__enter__()
+
+    def stop(self):
+        """Stop an active patch."""
+        return self.__exit__()
+
+
+@pytest.fixture
+def patch_gcmd():
+    return _patch_gcmd
 
 
 @pytest.fixture
