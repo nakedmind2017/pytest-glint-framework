@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 import shutil
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
+try:
+    from pathlib import Path
+except ImportError:
+    # Python 2 backport
+    from pathlib2 import Path
+try:
+    from unittest.mock import MagicMock, patch
+except ImportError:
+    from mock import MagicMock, patch
 import pytest
 
 import glint
@@ -172,9 +178,9 @@ class _xdict(dict):
     def __repr__(self):
         items = []
         for k, v in self.items():
-            items.append(f'{k!r}: {v!r}')
+            items.append('{k!r}: {v!r}'.format(k=k, v=v))
         for k, v in self._not_given.items():
-            items.append(f'{k!r}: {v!r}')
+            items.append('{k!r}: {v!r}'.format(k=k, v=v))
         return '{' + ', '.join(items) + '}'
 
     def __eq__(self, obj):
